@@ -1,0 +1,9 @@
+digraph BST {
+    node [shape=record, fontsize=12, fontname="Arial"];
+    50 -> 30 [label="left"];
+    30 -> 20 [label="left"];
+    20 -> 10 [label="left"];
+    30 -> 40 [label="right"];
+    50 -> 90 [label="right"];
+    90 -> 35 [label="left"];
+}
