@@ -4,16 +4,15 @@
 #include <set>
 #include <vector>
 #include <limits.h>
+#include <queue>
 
 using namespace std;
 
 class Graph {
-    unordered_map<int, list<pair<int, int>>> adj;
-    int numOfVertices;
-    unordered_map<int, int> vertexWeights; 
-    vector<int> distance;
-    vector<int> cumulativeVertexWeight;
-    set<pair<int, int>> s; // here first int -> distance & second int -> node
+    unordered_map<int, list<pair<int, int>>> adj; // Adjacency list
+    unordered_map<int, int> vertexWeights; // Vertex weights
+    vector<int> distance; // Distance from source
+    vector<int> cumulativeVertexWeight; // Cumulative vertex weights
 
 public:
     void addEdge(int u, int v, int weight) {
@@ -21,7 +20,6 @@ public:
     }
 
     void setNumOfVertices(int x) {
-        this->numOfVertices = x;
         distance.resize(x, INT_MAX);
         cumulativeVertexWeight.resize(x, 0);
     }
@@ -30,26 +28,22 @@ public:
         vertexWeights[vertex] = weight;
     }
 
-    int getVertexWeight(int vertex) {
-        return vertexWeights[vertex];
-    }
-
     vector<int> dijkstra(int src) {
-        distance[src] = 0;
-        cumulativeVertexWeight[src] = 0; 
-        s.insert(make_pair(distance[src], src));
+        distance[src] = 0; 
+        cumulativeVertexWeight[src] = vertexWeights[src]; // Start with the weight of the source
+        priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> pq; // Min-heap
+        pq.push({distance[src], src}); // Push the source node into the priority queue
 
-        while (!s.empty()) {
-            int top = s.begin()->second;
-            s.erase(s.begin());
+        while (!pq.empty()) {
+            int top = pq.top().second; // Get the node with the smallest distance
+            pq.pop();
 
             for (auto neighbour : adj[top]) {
-                int newDistance = distance[top] + neighbour.second + cumulativeVertexWeight[top];
+                int newDistance = distance[top] + neighbour.second + vertexWeights[neighbour.first];
                 if (distance[neighbour.first] > newDistance) {
-                    s.erase(make_pair(distance[neighbour.first], neighbour.first));
                     distance[neighbour.first] = newDistance;
                     cumulativeVertexWeight[neighbour.first] = cumulativeVertexWeight[top] + vertexWeights[neighbour.first];
-                    s.insert(make_pair(distance[neighbour.first], neighbour.first));
+                    pq.push({distance[neighbour.first], neighbour.first});
                 }
             }
         }
@@ -58,17 +52,14 @@ public:
 };
 
 int main() {
-    /*Vertices: 5
-    Edges: (0 -> 1, 10), (0 -> 4, 3), (1 -> 2, 2), (1 -> 4, 4), (2 -> 3, 9), (3 -> 2, 7), (4 -> 1, 1), (4 -> 2, 8), (4 -> 3, 2)
-    Vertex Weights: 0, 1, 2, 3, 4
-    */
     Graph g;
     g.setNumOfVertices(5);
-    g.setVertexWeight(0, 50);
+    g.setVertexWeight(0, 5);
     g.setVertexWeight(1, 1);
     g.setVertexWeight(2, 2);
     g.setVertexWeight(3, 3);
     g.setVertexWeight(4, 4);
+    
     g.addEdge(0, 1, 10);
     g.addEdge(0, 4, 3);
     g.addEdge(1, 2, 2);
@@ -78,10 +69,15 @@ int main() {
     g.addEdge(4, 1, 1);
     g.addEdge(4, 2, 8);
     g.addEdge(4, 3, 2);
-    vector<int> distances = g.dijkstra(0);
-    for (auto i : distances) {
-        cout << i << " ";
+    
+    int src = 0; // Starting vertex
+    vector<int> distances = g.dijkstra(src);
+    
+    cout << "Vertex Distances from Source (" << src << "):" << endl;
+    for (int i = 0; i < distances.size(); i++) {
+        cout << "Distance to vertex " << i << ": " 
+             << (distances[i] == INT_MAX ? "INF" : to_string(distances[i])) << endl;
     }
-    cout << endl;
+    
     return 0;
 }
