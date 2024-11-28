@@ -12,7 +12,6 @@ class Graph {
     unordered_map<int, list<pair<int, int>>> adj; // Adjacency list
     unordered_map<int, int> vertexWeights; // Vertex weights
     vector<int> distance; // Distance from source
-    vector<int> cumulativeVertexWeight; // Cumulative vertex weights
 
 public:
     void addEdge(int u, int v, int weight) {
@@ -21,7 +20,6 @@ public:
 
     void setNumOfVertices(int x) {
         distance.resize(x, INT_MAX);
-        cumulativeVertexWeight.resize(x, 0);
     }
 
     void setVertexWeight(int vertex, int weight) {
@@ -29,20 +27,21 @@ public:
     }
 
     vector<int> dijkstra(int src) {
-        distance[src] = 0; 
-        cumulativeVertexWeight[src] = vertexWeights[src]; // Start with the weight of the source
-        priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> pq; // Min-heap
-        pq.push({distance[src], src}); // Push the source node into the priority queue
+        distance[src] = 0; // Initialize source distance to 0
+        priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> pq;
+        pq.push({0, src});
 
         while (!pq.empty()) {
-            int top = pq.top().second; // Get the node with the smallest distance
+            int dist = pq.top().first;
+            int top = pq.top().second;
             pq.pop();
 
+            if (dist > distance[top]) continue;
+
             for (auto neighbour : adj[top]) {
-                int newDistance = distance[top] + neighbour.second + vertexWeights[neighbour.first];
+                int newDistance = distance[top] + neighbour.second;
                 if (distance[neighbour.first] > newDistance) {
                     distance[neighbour.first] = newDistance;
-                    cumulativeVertexWeight[neighbour.first] = cumulativeVertexWeight[top] + vertexWeights[neighbour.first];
                     pq.push({distance[neighbour.first], neighbour.first});
                 }
             }
